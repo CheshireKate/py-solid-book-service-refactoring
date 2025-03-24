@@ -23,34 +23,55 @@ class Book:
         print(self.content[::-1])
 
 
-    def serialize_json (self) -> str:
-        return json.dumps({"title": self.title, "content": self.content})
 
-    def serialize_xml (self) -> str:
+
+class Serialize:
+    @staticmethod
+    def serialize_json (book: Book) -> str:
+        return json.dumps({"title": book.title, "content": book.content})
+
+    @staticmethod
+    def serialize_xml (book: Book) -> str:
         root = ET.Element("book")
         title = ET.SubElement(root, "title")
-        title.text = self.title
+        title.text = book.title
         content = ET.SubElement(root, "content")
-        content.text = self.content
+        content.text = book.content
         return ET.tostring(root, encoding="unicode")
 
+class Commands:
+    def __init__(self, book: Book):
+        self.book = book
 
-def main(book: Book, commands: list[tuple[str]]) -> None | str:
-    for cmd, method_type in commands:
+    def action(self, cmd: str) -> str | None:
         if cmd == "display console":
-            book.display_console()
+            self.book.display_console()
         elif cmd == "display reverse":
-            book.display_reverse()
+            self.book.display_reverse()
         elif cmd == "print book console":
-            book.print_book_console()
+            self.book.print_book_console()
         elif cmd == "print book reverse":
-            book.print_book_reverse()
+            self.book.print_book_reverse()
         elif cmd == "serialize json":
-            return book.serialize_json()
+            return Serialize.serialize_json(self.book)
         elif cmd == "serialize xml":
-            return book.serialize_xml()
+            return Serialize.serialize_xml(self.book)
+        else:
+            print(f"Unknown command: {cmd}")
+            return None
+
+
+def main(book: Book, commands: list[str]) -> list[None | str]:
+    command = Commands(book)
+    result = []
+    for cmd in commands:
+        result.append(command.action(cmd))
+    return result
+
 
 
 if __name__ == "__main__":
     sample_book = Book("Sample Book", "This is some sample content.")
-    print(main(sample_book, [("display console",), ("serialize xml",)]))
+    results = main(sample_book, ["display console", "serialize xml",])
+    for result in results:
+        print(result)
